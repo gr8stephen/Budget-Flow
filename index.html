@@ -12,6 +12,511 @@
 </head>
 <body>
     <div id="root"></div>
-    <script type="text/babel" src="js/app.js"></script>
+    <script type="text/babel">
+        const { useState } = React;
+
+        // Data
+        const categories = [
+            { label: "Food & Drinks", emoji: "🍔" },
+            { label: "Transport", emoji: "🚗" },
+            { label: "Shopping", emoji: "🛍️" },
+            { label: "Health", emoji: "💊" },
+            { label: "Entertainment", emoji: "🎬" },
+            { label: "Other", emoji: "📌" },
+        ];
+
+        const weekDays = [
+            { label: "Mon", amount: 25 },
+            { label: "Tue", amount: 75 },
+            { label: "Wed", amount: 100 },
+            { label: "Thu", amount: 50 },
+            { label: "Fri", amount: 100 },
+            { label: "Sat", amount: 100 },
+            { label: "Sun", amount: 50 },
+        ];
+
+        const budgetCategories = [
+            { emoji: "🍔", name: "Food and Drinks", spent: 59, budget: 300, color: "#7c4dff" },
+            { emoji: "🚗", name: "Transport", spent: 19, budget: 150, color: "#ff6b6b" },
+            { emoji: "🎬", name: "Entertainment", spent: 16, budget: 100, color: "#ffd166" },
+            { emoji: "📄", name: "Bills", spent: 120, budget: 200, color: "#4ecdc4" },
+            { emoji: "💊", name: "Medication", spent: 25, budget: 200, color: "#06d6a0" },
+            { emoji: "📚", name: "Education", spent: 25, budget: 100, color: "#ff9f43" },
+            { emoji: "🚀", name: "Others", spent: 200, budget: 350, color: "#a29bfe" },
+        ];
+
+        const navItems = [
+            { icon: "🏠", label: "Home" },
+            { icon: "📊", label: "Budget" },
+            { icon: null, label: "Add Transaction", special: true },
+            { icon: "🛍️", label: "Activity" },
+            { icon: "⊞", label: "Dashboard" },
+        ];
+
+        const initialTransactions = [
+            { id: 1, date: "Mar 3, 2026", category: "Food & Drinks", name: "Grocery Store", emoji: "🍔", amount: -52.3 },
+            { id: 2, date: "Mar 4, 2026", category: "Transport", name: "Uber Ride", emoji: "🚗", amount: -18.5 },
+            { id: 3, date: "Mar 6, 2026", category: "Other", name: "Salary", emoji: "🚀", amount: 4200.0 },
+        ];
+
+        const allTransactions = [
+            { id: 1, name: "Grocery Store", category: "Food & Drinks", emoji: "🍔", amount: -52.30, type: "expense" },
+            { id: 2, name: "Uber Ride", category: "Transport", emoji: "🚗", amount: -18.50, type: "expense" },
+            { id: 3, name: "Salary", category: "Other", emoji: "🚀", amount: 5000.00, type: "income" },
+            { id: 4, name: "Netflix", category: "Entertainment", emoji: "🎬", amount: -15.99, type: "expense" },
+            { id: 5, name: "Electric Bill", category: "Bills", emoji: "📄", amount: -89.00, type: "expense" },
+            { id: 6, name: "Pharmacy", category: "Health", emoji: "💊", amount: -24.50, type: "expense" },
+            { id: 7, name: "Coffee Shop", category: "Food & Drinks", emoji: "☕", amount: -6.80, type: "expense" },
+            { id: 8, name: "Education", category: "Education", emoji: "📚", amount: -6.80, type: "expense" },
+        ];
+
+        // Dashboard Component
+        function Dashboard() {
+            const [activeDay, setActiveDay] = useState(0);
+            const maxDay = Math.max(...weekDays.map((d) => d.amount));
+
+            const totalExpenses = budgetCategories.reduce((s, c) => s + c.spent, 0);
+            const totalIncome = 5000;
+            const totalBudget = budgetCategories.reduce((s, c) => s + c.budget, 0);
+            const usedBudget = totalExpenses;
+
+            return (
+                <div style={{ flex: 1, overflow: "auto", padding: "32px 40px" }}>
+                    {/* Header */}
+                    <div style={{ marginBottom: 28 }}>
+                        <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.02em" }}>DASHBOARD</h1>
+                    </div>
+
+                    {/* Stat Cards */}
+                    <div style={{ display: "flex", gap: 16, marginBottom: 28 }}>
+                        <div className="stat-card">
+                            <p style={{ color: "#888", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Total expenses</p>
+                            <p style={{ fontFamily: "'Space Mono', monospace", fontSize: 24, fontWeight: 700, color: "#ff6b6b" }}>₵ {totalExpenses.toLocaleString()}</p>
+                        </div>
+                        <div className="stat-card">
+                            <p style={{ color: "#888", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Total income</p>
+                            <p style={{ fontFamily: "'Space Mono', monospace", fontSize: 24, fontWeight: 700, color: "#4ade80" }}>₵ {totalIncome.toLocaleString()}</p>
+                        </div>
+                        <div className="stat-card">
+                            <p style={{ color: "#888", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Budget</p>
+                            <p style={{ fontFamily: "'Space Mono', monospace", fontSize: 24, fontWeight: 700, color: "#fff" }}>
+                                ₵{usedBudget}/{totalBudget}
+                            </p>
+                            <div className="progress-track" style={{ marginTop: 10 }}>
+                                <div className="progress-fill" style={{ width: `${(usedBudget / totalBudget) * 100}%`, background: "linear-gradient(90deg, #7c4dff, #9c6aff)" }} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Summary — Weekly Chart */}
+                    <div style={{ background: "linear-gradient(135deg, #1a1040, #1e1a3a)", border: "1px solid #2a2050", borderRadius: 18, padding: "20px 24px", marginBottom: 24 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                            <div>
+                                <p style={{ fontWeight: 700, fontSize: 15 }}>Summary</p>
+                                <p style={{ color: "#888", fontSize: 12, marginTop: 2 }}>This week</p>
+                            </div>
+                            <span style={{ color: "#7c4dff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>see all</span>
+                        </div>
+                        <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
+                            {weekDays.map((day, i) => {
+                                const pct = (day.amount / maxDay) * 100;
+                                const isActive = activeDay === i;
+                                return (
+                                    <div key={i} className="day-bar-wrap" onClick={() => setActiveDay(i)}>
+                                        <span style={{ color: isActive ? "#fff" : "#666", fontSize: 11, fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>₵{day.amount}</span>
+                                        <div className="day-bar-bg">
+                                            <div className="day-bar-fill" style={{
+                                                height: `${pct}%`,
+                                                background: isActive
+                                                    ? "linear-gradient(180deg, #7de8ff, #4dd8f0)"
+                                                    : "rgba(124,77,255,0.25)",
+                                            }} />
+                                        </div>
+                                        <span style={{ color: isActive ? "#fff" : "#555", fontSize: 11, fontWeight: 600 }}>{day.label}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Budget Categories */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        {budgetCategories.map((cat, i) => {
+                            const pct = Math.min((cat.spent / cat.budget) * 100, 100);
+                            const isOver = cat.spent > cat.budget * 0.8;
+                            return (
+                                <div key={cat.name} className="budget-row" style={{ animationDelay: `${i * 0.05}s` }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                            <span style={{ fontSize: 18 }}>{cat.emoji}</span>
+                                            <span style={{ fontWeight: 600, fontSize: 14 }}>{cat.name}</span>
+                                        </div>
+                                        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, color: isOver ? "#ff6b6b" : "#aaa" }}>
+                                            {cat.spent}/{cat.budget}
+                                        </span>
+                                    </div>
+                                    <div className="progress-track">
+                                        <div className="progress-fill" style={{
+                                            width: `${pct}%`,
+                                            background: isOver
+                                                ? `linear-gradient(90deg, ${cat.color}88, #ff6b6b)`
+                                                : `linear-gradient(90deg, ${cat.color}88, ${cat.color})`,
+                                        }} />
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            );
+        }
+
+        // Add Transaction Component
+        function AddTransaction() {
+            const [transactions, setTransactions] = useState(initialTransactions);
+            const [amount, setAmount] = useState("");
+            const [category, setCategory] = useState("");
+            const [date, setDate] = useState("");
+            const [description, setDescription] = useState("");
+            const [paymentMethod, setPaymentMethod] = useState("Mobile money");
+            const [filterText, setFilterText] = useState("");
+            const [showFilterBar, setShowFilterBar] = useState(false);
+
+            const handleSave = () => {
+                if (!amount || !category || !date) return;
+                const cat = categories.find((c) => c.label === category);
+                const newTx = {
+                    id: Date.now(),
+                    date: new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+                    category,
+                    name: description || category,
+                    emoji: cat?.emoji || "📌",
+                    amount: parseFloat(amount),
+                };
+                setTransactions([newTx, ...transactions]);
+                setAmount("");
+                setCategory("");
+                setDate("");
+                setDescription("");
+            };
+
+            const handleDelete = (id) => {
+                setTransactions(transactions.filter((t) => t.id !== id));
+            };
+
+            const filtered = transactions.filter(
+                (t) =>
+                    t.name.toLowerCase().includes(filterText.toLowerCase()) ||
+                    t.category.toLowerCase().includes(filterText.toLowerCase())
+            );
+
+            return (
+                <div style={{ flex: 1, overflow: "auto", padding: "32px 40px" }}>
+                    {/* Header */}
+                    <div style={{ marginBottom: 28 }}>
+                        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", color: "#7c4dff", textTransform: "uppercase", marginBottom: 4 }}>Add Transaction</p>
+                        <p style={{ color: "#8888aa", fontSize: 14 }}>Easily track and manage your daily expenses and income</p>
+                    </div>
+
+                    {/* Add Transaction Card */}
+                    <div style={{ background: "#12122b", border: "1px solid #1e1e3a", borderRadius: 18, padding: 24, marginBottom: 28 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+                            <p style={{ color: "#aaa", fontSize: 13, fontWeight: 600, letterSpacing: "0.05em" }}>Add New Transactions</p>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-end" }}>
+                                <p style={{ color: "#aaa", fontSize: 12, marginBottom: 4 }}>Payment method</p>
+                                <div style={{ display: "flex", gap: 6 }}>
+                                    {["Mobile money", "Cash", "Card"].map((pm) => (
+                                        <button key={pm} className={`pm-btn${paymentMethod === pm ? " active" : ""}`} onClick={() => setPaymentMethod(pm)}>{pm}</button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ display: "flex", gap: 14, alignItems: "flex-end", flexWrap: "wrap" }}>
+                            {/* Amount */}
+                            <div style={{ flex: "1 1 160px" }}>
+                                <label style={{ color: "#8888aa", fontSize: 12, display: "block", marginBottom: 6 }}>Amount</label>
+                                <div style={{ background: "#0d0d1a", border: "1px solid #2e2e4d", borderRadius: 10, padding: "10px 14px", display: "flex", alignItems: "center", gap: 6 }}>
+                                    <span style={{ color: "#7c4dff", fontWeight: 700, fontFamily: "'Space Mono', monospace" }}>₵</span>
+                                    <input
+                                        type="number"
+                                        value={amount}
+                                        onChange={(e) => setAmount(e.target.value)}
+                                        placeholder="0.00"
+                                        style={{ background: "transparent", border: "none", color: "#fff", fontSize: 16, fontFamily: "'Space Mono', monospace", width: "100%" }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Category */}
+                            <div style={{ flex: "1 1 180px" }}>
+                                <label style={{ color: "#8888aa", fontSize: 12, display: "block", marginBottom: 6 }}>Category</label>
+                                <select
+                                    value={category}
+                                    onChange={(e) => setCategory(e.target.value)}
+                                    style={{ background: "#0d0d1a", border: "1px solid #2e2e4d", borderRadius: 10, padding: "10px 14px", color: category ? "#fff" : "#555", fontSize: 14, fontFamily: "'DM Sans', sans-serif", width: "100%", cursor: "pointer" }}
+                                >
+                                    <option value="">select category</option>
+                                    {categories.map((c) => (
+                                        <option key={c.label} value={c.label}>{c.emoji} {c.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Date */}
+                            <div style={{ flex: "1 1 160px" }}>
+                                <label style={{ color: "#8888aa", fontSize: 12, display: "block", marginBottom: 6 }}>Date</label>
+                                <input
+                                    type="date"
+                                    value={date}
+                                    onChange={(e) => setDate(e.target.value)}
+                                    style={{ background: "#0d0d1a", border: "1px solid #2e2e4d", borderRadius: 10, padding: "10px 14px", color: date ? "#fff" : "#555", fontSize: 14, fontFamily: "'DM Sans', monospace", width: "100%", colorScheme: "dark" }}
+                                />
+                            </div>
+
+                            <button className="save-btn" onClick={handleSave}>Save transaction</button>
+                        </div>
+
+                        {/* Description */}
+                        <div style={{ marginTop: 16 }}>
+                            <label style={{ color: "#8888aa", fontSize: 12, display: "block", marginBottom: 6 }}>Description</label>
+                            <input
+                                type="text"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                placeholder="What was this for?"
+                                style={{ background: "#0d0d1a", border: "1px solid #2e2e4d", borderRadius: 10, padding: "10px 16px", color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", width: "100%" }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Transaction History */}
+                    <div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                                <button className="filter-btn" onClick={() => setShowFilterBar(!showFilterBar)}>
+                                    🔽 Filters
+                                </button>
+                                {showFilterBar && (
+                                    <input
+                                        className="filter-input"
+                                        placeholder="Search transactions..."
+                                        value={filterText}
+                                        onChange={(e) => setFilterText(e.target.value)}
+                                    />
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Table Header */}
+                        <div style={{ display: "grid", gridTemplateColumns: "140px 1fr 160px 100px", gap: 12, padding: "8px 20px", marginBottom: 8 }}>
+                            {["DATE", "CATEGORY", "AMOUNT", "ACTION"].map((h) => (
+                                <span key={h} style={{ color: "#555", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em" }}>{h}</span>
+                            ))}
+                        </div>
+
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                            {filtered.length === 0 ? (
+                                <div style={{ textAlign: "center", color: "#555", padding: "40px 0", fontSize: 14 }}>No transactions found</div>
+                            ) : (
+                                filtered.map((tx) => (
+                                    <div key={tx.id} className="tx-row" style={{ display: "grid", gridTemplateColumns: "140px 1fr 160px 100px", gap: 12, alignItems: "center" }}>
+                                        <span style={{ color: "#666", fontSize: 13, fontFamily: "'Space Mono', monospace" }}>{tx.date}</span>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                                            <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(124,77,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
+                                                {tx.emoji}
+                                            </div>
+                                            <div>
+                                                <div style={{ color: "#fff", fontSize: 14, fontWeight: 600 }}>{tx.name}</div>
+                                                <div style={{ color: "#666", fontSize: 12 }}>{tx.category}</div>
+                                            </div>
+                                        </div>
+                                        <span className={tx.amount >= 0 ? "amount-positive" : "amount-negative"}>
+                                            {tx.amount >= 0 ? "+" : "-"}₵{Math.abs(tx.amount).toFixed(2)}
+                                        </span>
+                                        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                                            <button className="delete-btn" onClick={() => handleDelete(tx.id)}>Delete</button>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Activity Component
+        function Activity() {
+            const [activeFilter, setActiveFilter] = useState("All");
+            const [search, setSearch] = useState("");
+
+            const filtered = allTransactions.filter((t) => {
+                const matchFilter =
+                    activeFilter === "All" ||
+                    (activeFilter === "Expenses" && t.type === "expense") ||
+                    (activeFilter === "Income" && t.type === "income");
+                const matchSearch =
+                    t.name.toLowerCase().includes(search.toLowerCase()) ||
+                    t.category.toLowerCase().includes(search.toLowerCase());
+                return matchFilter && matchSearch;
+            });
+
+            const handleGenerateReport = () => {
+                const lines = [
+                    "ACTIVITY REPORT",
+                    "================",
+                    "",
+                    ...filtered.map(
+                        (t) => `${t.name} (${t.category}): ${t.amount >= 0 ? "+" : ""}₵${t.amount.toFixed(2)}`
+                    ),
+                    "",
+                    `Total: ₵${filtered.reduce((s, t) => s + t.amount, 0).toFixed(2)}`,
+                ];
+                alert(lines.join("\n"));
+            };
+
+            return (
+                <div style={{ flex: 1, overflow: "auto", padding: "32px 40px" }}>
+                    {/* Header */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 }}>
+                        <div>
+                            <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 2 }}>ACTIVITY</h1>
+                            <p style={{ color: "#666", fontSize: 13 }}>Transaction</p>
+                        </div>
+                        <button className="generate-btn" onClick={handleGenerateReport}>Generate report</button>
+                    </div>
+
+                    {/* Search */}
+                    <div style={{ position: "relative", marginBottom: 22 }}>
+                        <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "#555", fontSize: 16 }}>🔍</span>
+                        <input
+                            className="search-input"
+                            style={{ paddingLeft: 44 }}
+                            placeholder="Search transaction..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </div>
+
+                    {/* Filter Pills */}
+                    <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 24 }}>
+                        {["All", "Expenses", "Income"].map((f) => (
+                            <button
+                                key={f}
+                                className={`filter-pill${activeFilter === f ? " active" : ""}`}
+                                onClick={() => setActiveFilter(f)}
+                            >
+                                {f}
+                            </button>
+                        ))}
+                        <span style={{ marginLeft: "auto", color: "#7c4dff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>See all</span>
+                    </div>
+
+                    {/* Transaction List */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        {filtered.length === 0 ? (
+                            <div style={{ textAlign: "center", color: "#555", padding: "60px 0", fontSize: 15 }}>
+                                No transactions found
+                            </div>
+                        ) : (
+                            filtered.map((tx, i) => (
+                                <div
+                                    key={tx.id}
+                                    className="activity-row"
+                                    style={{ animationDelay: `${i * 0.04}s` }}
+                                >
+                                    <div style={{ width: 40, height: 40, borderRadius: 12, background: "rgba(124,77,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
+                                        {tx.emoji}
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontWeight: 700, fontSize: 15, color: "#fff" }}>{tx.name}</div>
+                                        <div style={{ color: "#666", fontSize: 13, marginTop: 1 }}>{tx.category}</div>
+                                    </div>
+                                    <span className={tx.amount >= 0 ? "amount-pos" : "amount-neg"}>
+                                        {tx.amount >= 0 ? "+" : "-"}₵{Math.abs(tx.amount).toFixed(2)}
+                                    </span>
+                                </div>
+                            ))
+                        )}
+                    </div>
+
+                    {/* Summary Footer */}
+                    {filtered.length > 0 && (
+                        <div style={{ marginTop: 28, padding: "16px 22px", background: "#12122b", border: "1px solid #1e1e3a", borderRadius: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span style={{ color: "#666", fontSize: 13 }}>{filtered.length} transaction{filtered.length !== 1 ? "s" : ""}</span>
+                            <div style={{ display: "flex", gap: 24 }}>
+                                <span style={{ color: "#888", fontSize: 13 }}>
+                                    Out: <span style={{ color: "#ff6b6b", fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
+                                        ₵{Math.abs(filtered.filter(t => t.amount < 0).reduce((s, t) => s + t.amount, 0)).toFixed(2)}
+                                    </span>
+                                </span>
+                                <span style={{ color: "#888", fontSize: 13 }}>
+                                    In: <span style={{ color: "#4ade80", fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
+                                        ₵{filtered.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0).toFixed(2)}
+                                    </span>
+                                </span>
+                                <span style={{ color: "#888", fontSize: 13 }}>
+                                    Net: <span style={{ fontFamily: "'Space Mono', monospace", fontWeight: 700, color: filtered.reduce((s, t) => s + t.amount, 0) >= 0 ? "#4ade80" : "#ff6b6b" }}>
+                                        ₵{filtered.reduce((s, t) => s + t.amount, 0).toFixed(2)}
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Main App Component
+        function App() {
+            const [activeNav, setActiveNav] = useState("Dashboard");
+
+            const renderContent = () => {
+                switch (activeNav) {
+                    case "Dashboard":
+                        return <Dashboard />;
+                    case "Add Transaction":
+                        return <AddTransaction />;
+                    case "Activity":
+                        return <Activity />;
+                    default:
+                        return <Dashboard />;
+                }
+            };
+
+            return (
+                <div style={{ display: "flex", height: "100vh", background: "#0d0d1a", fontFamily: "'DM Sans', sans-serif", color: "#fff", overflow: "hidden" }}>
+                    {/* Sidebar */}
+                    <div style={{ width: 220, background: "#0d0d1a", borderRight: "1px solid #1a1a2e", display: "flex", flexDirection: "column", padding: "24px 12px", flexShrink: 0 }}>
+                        <div style={{ padding: "4px 20px 28px", display: "flex", alignItems: "center", gap: 10 }}>
+                            <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg, #7c4dff, #4d7cff)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>💸</div>
+                            <span style={{ fontWeight: 700, fontSize: 15 }}>Budget-Flow</span>
+                        </div>
+                        <nav style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
+                            {navItems.map((item) => (
+                                <div key={item.label} className={`nav-item${activeNav === item.label ? " active" : ""}`} onClick={() => setActiveNav(item.label)}>
+                                    {item.special ? (
+                                        <div style={{ width: 26, height: 26, borderRadius: "50%", border: "2px solid #ff6b35", display: "flex", alignItems: "center", justifyContent: "center", color: "#ff6b35", fontSize: 16, flexShrink: 0 }}>+</div>
+                                    ) : (
+                                        <span style={{ fontSize: 18 }}>{item.icon}</span>
+                                    )}
+                                    <span style={activeNav === item.label && (item.label === "Dashboard" || item.label === "Activity") ? { color: "#ff6b35" } : {}}>{item.label}</span>
+                                </div>
+                            ))}
+                        </nav>
+                        <div style={{ borderTop: "1px solid #1a1a2e", paddingTop: 16 }}>
+                            <div className="nav-item"><span style={{ fontSize: 18 }}>⚙️</span><span>Settings</span></div>
+                        </div>
+                    </div>
+
+                    {renderContent()}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
