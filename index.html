@@ -1,11 +1,313 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Budget-flow</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Budget Flow</title>
+
+  <!-- Google Fonts: Sora for UI text, Space Mono for numbers/amounts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="css/style.css"/>
+  
+  
 </head>
 <body>
-    
+
+
+  <!-- APP SHELL -->
+  <div class="app">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div class="sidebar-logo" onclick="goBack()">&#8592;</div>
+      <div class="nav-item active" id="nav-budget" onclick="showScreen('budget')">    📋 &nbsp;Budget           </div>
+      <div class="nav-item"        id="nav-dashboard">⊞  &nbsp;Dashboard        </div>
+      <div class="nav-item"        id="nav-add">      ➕ &nbsp;Add Transaction  </div>
+      <div class="nav-item"        id="nav-activity"> 🛍️ &nbsp;Activity         </div>
+      <div class="nav-item"        id="nav-savings"  onclick="showScreen('savings')">  💰 &nbsp;Savings          </div>
+      <div class="sidebar-footer">
+        <div class="nav-item">⚙️ &nbsp;Settings</div>
+      </div>
+    </nav>
+
+    <!-- BUDGET SCREEN -->
+    <div class="main screen visible" id="screen-budget">
+      <div class="page-title">Budget</div>
+      <div class="summary-card">
+        <div>
+          <div class="s-label"  id="budget-month-label">No Budget Set</div>
+          <div class="s-amount" id="budget-display">₵0 / ₵0</div>
+          <div class="s-sub"    id="budget-cats-label">Set a budget to get started</div>
+        </div>
+        <button class="set-budget-btn" onclick="openModal('set-budget')">Set Budget</button>
+      </div>
+      <div class="overall-bar-wrap">
+        <div class="overall-bar-track">
+          <div class="overall-bar-fill fill-green" id="overall-bar" style="width: 0%"></div>
+        </div>
+        <div class="overall-bar-labels">
+          <span id="overall-spent-label">₵0 spent</span>
+          <span id="overall-left-label"></span>
+        </div>
+      </div>
+      <div class="cat-list-header">
+        <div class="cat-list-title">Categories</div>
+        <button class="add-cat-btn" onclick="openModal('add-category')">+ Add Category</button>
+      </div>
+      <div class="category-list" id="category-list">
+        <div class="empty-state">
+          No categories yet — click <strong>+ Add Category</strong> to get started.
+        </div>
+      </div>
+    </div>
+
+    <!-- SAVINGS SCREEN -->
+    <div class="main screen" id="screen-savings">
+      <div class="page-title">Savings</div>
+      <div class="page-subtitle">
+        Penny by penny, cedi by cedi, your savings grow — secure your tomorrow.
+      </div>
+      <div class="savings-top">
+        <div class="savings-balance">
+          <div class="s-label">Total Saved</div>
+          <div class="s-value">
+            <span>Save :</span>
+            <span id="total-savings-display">₵0.00</span>
+          </div>
+        </div>
+        <button class="add-money-btn" onclick="openModal('add-money')">＋ Add Money</button>
+      </div>
+      <div class="section-title">Active Budget</div>
+      <div class="active-budget-card">
+        <div class="s-label"  id="sav-budget-month">No Budget Set</div>
+        <div class="s-amount" id="sav-budget-display">₵0 / ₵0</div>
+        <div class="s-sub"    id="sav-budget-cats">Set a budget to get started</div>
+      </div>
+      <div class="goals-header">
+        <div class="section-title" style="margin-bottom: 0">Active Goals</div>
+        <button class="add-goal-btn" onclick="openModal('add-goal')">+ Add Goal</button>
+      </div>
+      <div class="goals-grid" id="goals-grid">
+        <div style="grid-column: 1 / -1" class="empty-state">
+          No goals yet — add one to start saving!
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.app -->
+
+
+  <!-- MODAL: SET BUDGET -->
+  <div class="modal-overlay" id="modal-set-budget" onclick="overlayClose(event, 'modal-set-budget')">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Set Monthly Budget</div>
+        <button class="modal-close" onclick="closeModal('modal-set-budget')">✕</button>
+      </div>
+      <div class="form-group">
+        <label>Month</label>
+        <input type="month" id="sb-month"/>
+      </div>
+      <div class="form-group">
+        <label>Total Budget Amount (₵)</label>
+        <input type="number" id="sb-amount" placeholder="e.g. 2000" min="1"/>
+      </div>
+      <div class="modal-error" id="sb-error"></div>
+      <button class="modal-submit-btn" onclick="setBudget()">Save Budget</button>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD CATEGORY -->
+  <div class="modal-overlay" id="modal-add-category" onclick="overlayClose(event, 'modal-add-category')">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Add Category</div>
+        <button class="modal-close" onclick="closeModal('modal-add-category')">✕</button>
+      </div>
+      <div class="form-group">
+        <label>Category Name</label>
+        <input type="text" id="ac-name" placeholder="e.g. Groceries, Gym..."/>
+      </div>
+      <div class="form-group">
+        <label>Spending Limit (₵)</label>
+        <input type="number" id="ac-limit" placeholder="e.g. 300" min="1"/>
+      </div>
+      <div class="form-group">
+        <label>Choose Emoji</label>
+        <div class="emoji-row" id="emoji-row"></div>
+      </div>
+      <div class="modal-error" id="ac-error"></div>
+      <button class="modal-submit-btn" onclick="addCategory()">Add Category</button>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT CATEGORY -->
+  <div class="modal-overlay" id="modal-edit-category" onclick="overlayClose(event, 'modal-edit-category')">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Edit Category</div>
+        <button class="modal-close" onclick="closeModal('modal-edit-category')">✕</button>
+      </div>
+      <div class="form-group">
+        <label>Category Name</label>
+        <input type="text" id="ec-name"/>
+      </div>
+      <div class="form-group">
+        <label>Spending Limit (₵)</label>
+        <input type="number" id="ec-limit" min="1"/>
+      </div>
+      <div class="modal-error" id="ec-error"></div>
+      <button class="modal-submit-btn" onclick="saveEditCategory()">Save Changes</button>
+    </div>
+  </div>
+
+  <!-- MODAL: LOG SPEND -->
+  <div class="modal-overlay" id="modal-log-spend" onclick="overlayClose(event, 'modal-log-spend')">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Log Spending</div>
+        <button class="modal-close" onclick="closeModal('modal-log-spend')">✕</button>
+      </div>
+      <div class="hint-text" id="ls-hint"></div>
+      <div class="form-group">
+        <label>Amount Spent (₵)</label>
+        <input type="number" id="ls-amount" placeholder="e.g. 50" min="0.01" step="0.01"/>
+      </div>
+      <div class="modal-error" id="ls-error"></div>
+      <button class="modal-submit-btn" onclick="logSpend()">Log Spend</button>
+    </div>
+  </div>
+
+  <!-- MODAL: FIX SPENT AMOUNT -->
+  <div class="modal-overlay" id="modal-correct-spend" onclick="overlayClose(event, 'modal-correct-spend')">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Fix Spent Amount</div>
+        <button class="modal-close" onclick="closeModal('modal-correct-spend')">✕</button>
+      </div>
+      <div class="hint-text" id="cs-hint"></div>
+      <div class="form-group">
+        <label>Correct Spent Amount (₵)</label>
+        <input type="number" id="cs-amount" placeholder="e.g. 50" min="0" step="0.01"/>
+      </div>
+      <div class="modal-error" id="cs-error"></div>
+      <button class="modal-submit-btn"
+              style="background: rgba(240, 160, 48, 0.8);"
+              onclick="saveCorrectSpend()">Save Correction</button>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD MONEY TO SAVINGS -->
+  <div class="modal-overlay" id="modal-add-money" onclick="overlayClose(event, 'modal-add-money')">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Add Money to Savings</div>
+        <button class="modal-close" onclick="closeModal('modal-add-money')">✕</button>
+      </div>
+      <div class="form-group">
+        <label>Amount (₵)</label>
+        <input type="number" id="am-amount" placeholder="e.g. 200" min="0.01" step="0.01"/>
+      </div>
+      <div class="form-group">
+        <label>Where is this money coming from?</label>
+      </div>
+      <div class="source-toggle">
+        <div class="src-opt selected" id="src-outside" onclick="selectSource('outside')">
+          <div class="src-icon">🎁</div>
+          <div class="src-label">Outside Money</div>
+          <div class="src-desc">Gift, side hustle, bonus — not from your monthly budget</div>
+        </div>
+        <div class="src-opt" id="src-budget" onclick="selectSource('budget')">
+          <div class="src-icon">📋</div>
+          <div class="src-label">From My Budget</div>
+          <div class="src-desc">Moving unused budget money into savings</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Allocate to Goal (optional)</label>
+        <select id="am-goal">
+          <option value="">— General Savings —</option>
+        </select>
+      </div>
+      <div class="modal-error" id="am-error"></div>
+      <button class="modal-submit-btn green-btn" onclick="addMoney()">Add to Savings</button>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD GOAL -->
+  <div class="modal-overlay" id="modal-add-goal" onclick="overlayClose(event, 'modal-add-goal')">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">New Savings Goal</div>
+        <button class="modal-close" onclick="closeModal('modal-add-goal')">✕</button>
+      </div>
+      <div class="form-group">
+        <label>Goal Name</label>
+        <input type="text" id="ag-name" placeholder="e.g. Macbook, Vacation..."/>
+      </div>
+      <div class="form-group">
+        <label>Target Amount (₵)</label>
+        <input type="number" id="ag-amount" placeholder="e.g. 5000" min="1"/>
+      </div>
+      <div class="form-group">
+        <label>Due Date</label>
+        <input type="month" id="ag-date"/>
+      </div>
+      <div class="modal-error" id="ag-error"></div>
+      <button class="modal-submit-btn" onclick="addGoal()">Add Goal</button>
+    </div>
+  </div>
+
+  <!-- MODAL: FUND GOAL -->
+  <div class="modal-overlay" id="modal-fund-goal" onclick="overlayClose(event, 'modal-fund-goal')">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Fund This Goal</div>
+        <button class="modal-close" onclick="closeModal('modal-fund-goal')">✕</button>
+      </div>
+      <div class="hint-text" id="fg-hint"></div>
+      <div class="form-group">
+        <label>Amount to Allocate (₵)</label>
+        <input type="number" id="fg-amount" placeholder="e.g. 500" min="0.01" step="0.01"/>
+      </div>
+      <div class="modal-error" id="fg-error"></div>
+      <button class="modal-submit-btn green-btn" onclick="fundGoal()">Allocate</button>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIRM DELETE CATEGORY -->
+  <div class="modal-overlay" id="modal-confirm-cat" onclick="overlayClose(event, 'modal-confirm-cat')">
+    <div class="modal narrow">
+      <div class="confirm-emoji">🗂️</div>
+      <div class="confirm-title">Delete this category?</div>
+      <div class="confirm-msg" id="confirm-cat-msg"></div>
+      <div class="confirm-btns">
+        <button class="btn-cancel"      onclick="closeModal('modal-confirm-cat')">Keep it</button>
+        <button class="btn-confirm-del" onclick="confirmDeleteCategory()">Yes, delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIRM DELETE GOAL -->
+  <div class="modal-overlay" id="modal-confirm-goal" onclick="overlayClose(event, 'modal-confirm-goal')">
+    <div class="modal narrow">
+      <div class="confirm-emoji" id="confirm-goal-emoji">😢</div>
+      <div class="confirm-title" id="confirm-goal-title">Are you sure?</div>
+      <div class="confirm-msg"   id="confirm-goal-msg"></div>
+      <div class="confirm-btns">
+        <button class="btn-cancel"      onclick="closeModal('modal-confirm-goal')">Keep saving</button>
+        <button class="btn-confirm-del" onclick="confirmDeleteGoal()">Delete goal</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="js/budget.js"></script>
+
+  
 </body>
 </html>
